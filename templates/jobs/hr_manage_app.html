@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-12">
+    <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+        <div class="mb-6 border-b pb-4">
+            <h1 class="text-2xl font-bold text-gray-900">Review Candidate: {{ app.candidate.username }}</h1>
+            <p class="text-gray-600 text-sm mt-1">Applying for: <strong>{{ app.job.title }}</strong></p>
+            <p class="text-gray-600 text-sm">Match Rating: <strong class="text-indigo-600 text-lg">{{ app.match_rating }}%</strong></p>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            {% if error %}
+            <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm font-semibold shadow-sm">{{ error }}</div>
+            {% endif %}
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Decision Status</label>
+                <select name="status" class="w-full border-gray-300 border p-3 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 outline-none text-gray-700 bg-gray-50 font-medium">
+                    <option value="Pending" {% if app.status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Accepted" {% if app.status == 'Accepted' %}selected{% endif %}>Accepted</option>
+                    <option value="Rejected" {% if app.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+                <p class="text-xs text-red-500 mt-2 font-medium">Note: Rejecting a candidate strictly requires an HR remark.</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">HR Remark (Visible to Candidate)</label>
+                <textarea name="hr_remark" rows="4" class="w-full border-gray-300 border p-3 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder-gray-400">{{ app.hr_remark|default:"" }}</textarea>
+            </div>
+
+            <div class="pt-4 flex justify-end space-x-3">
+                <a href="{% url 'hr_dashboard' %}" class="px-5 py-2.5 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition shadow-sm border">Cancel</a>
+                <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium shadow-sm transition">Save Decision</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

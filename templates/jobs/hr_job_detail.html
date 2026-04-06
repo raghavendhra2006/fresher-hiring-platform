@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="mb-8 border-b pb-6">
+        <a href="{% url 'profile' %}" class="text-sm text-indigo-600 hover:underline font-medium">&larr; Back to My Profile Portfolio</a>
+        <h1 class="text-3xl font-bold text-gray-900 mt-3">Job Funnel: <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">{{ job.title }}</span></h1>
+        <p class="text-sm text-gray-500 mt-2 font-medium">Review candidates directly and capture mandatory feedback reasoning entirely inline.</p>
+    </div>
+
+    {% if error %}
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3.5 rounded-xl mb-8 shadow-sm font-bold text-sm tracking-wide">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Custom Screening Questions Manager -->
+    <div class="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-12 shadow-sm">
+        <h2 class="text-lg font-bold text-gray-900 mb-3 flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2 shadow-sm"></span>Custom Screening Questions</h2>
+        <ul class="mb-5 space-y-2">
+            {% for q in questions %}
+            <li class="text-sm font-medium text-gray-700 bg-white px-4 py-2 border rounded shadow-sm flex items-center justify-between">
+                {{ q.text }} 
+                <span class="bg-gray-50 text-gray-600 px-2.5 py-1 text-xs font-bold rounded border border-gray-200 uppercase tracking-widest">{{ q.requires_yes|yesno:"Requires YES,Requires NO" }}</span>
+            </li>
+            {% empty %}
+            <li class="text-sm italic text-gray-500 py-2">No custom questions created yet.</li>
+            {% endfor %}
+        </ul>
+        
+        <form method="post" action="{% url 'hr_job_detail' job.id %}" class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+            {% csrf_token %}
+            <input type="text" name="question_text" placeholder="Type a new yes/no screening question..." class="w-full sm:flex-grow text-sm px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition shadow-sm" required />
+            <select name="requires_yes" class="w-full sm:w-auto text-sm border border-gray-300 bg-gray-50 font-bold text-gray-700 py-2.5 px-4 rounded-xl outline-none shadow-sm cursor-pointer">
+                <option value="yes">Demands 'YES'</option>
+                <option value="no">Demands 'NO'</option>
+            </select>
+            <button type="submit" name="action" value="add_question" class="w-full sm:w-auto bg-blue-600 border-none text-white px-6 py-2.5 text-sm font-bold rounded-xl shadow-sm hover:bg-blue-700 transition active:scale-[0.98] tracking-wide">Attach Question</button>
+        </form>
+    </div>
+
+    <!-- Candidate Matrix -->
+    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-yellow-500 mr-2 shadow-sm"></span>Pending Action Queue</h2>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-x-auto mb-16 pb-2">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-4 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Candidate</th>
+                    <th class="px-6 py-4 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Algorithmic Fit</th>
+                    <th class="px-6 py-4 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider">HR Determination Workflow</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for app in pending_apps %}
+                <tr class="hover:bg-yellow-50/20 transition group">
+                    <td class="px-6 py-6 whitespace-nowrap text-sm font-bold text-gray-900 flex flex-col">
+                        <span>{{ app.candidate.username }}</span>
+                        {% if app.resume %}
+                        <a href="{{ app.resume.url }}" target="_blank" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold mt-1 inline-flex items-center">
+                            <span class="bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded shadow-sm">📄 Download Logged Resume Context</span>
+                        </a>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-6 whitespace-nowrap">
+                        <span class="font-bold text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-md border shadow-sm inline-block
+                        {% if app.match_category == 'Strong Match' %}bg-green-50 border-green-200 text-green-700
+                        {% elif app.match_category == 'Skill Gap' %}bg-yellow-50 border-yellow-200 text-yellow-700
+                        {% else %}bg-red-50 border-red-200 text-red-700{% endif %}">
+                            {{ app.match_category }} ({{ app.match_rating }}%)
+                        </span>
+                    </td>
+                    <td class="px-6 py-6">
+                        <form method="post" action="{% url 'hr_job_detail' job.id %}" class="flex items-center justify-end space-x-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="app_id" value="{{ app.id }}">
+                            <input type="text" name="hr_remark" placeholder="Remark (mandatory if rejecting)..." class="text-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none w-72 shadow-sm transition" />
+                            <button type="submit" name="action" value="Reject" class="bg-white border text-red-600 px-4 py-2 text-xs font-bold rounded-lg shadow-sm hover:bg-red-50 hover:border-red-200 transition active:scale-[0.98]">Reject</button>
+                            <button type="submit" name="action" value="Accept" class="bg-gray-900 border-none text-white px-5 py-2 text-xs font-bold rounded-lg shadow-sm hover:bg-indigo-600 transition tracking-wide active:scale-[0.98]">Accept Candidate</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="px-6 py-12 text-center text-sm font-medium text-gray-400 bg-gray-50/50">Your pending queue is completely clear.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Finalized Tracker -->
+    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-gray-400 mr-2 shadow-sm"></span>Decision History</h2>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <ul class="divide-y divide-gray-100">
+            {% for app in processed_apps %}
+            <li class="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between {% if app.status == 'Accepted' %}bg-green-50/20{% else %}bg-red-50/20{% endif %} hover:bg-gray-50 transition gap-4">
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900 flex flex-wrap items-center gap-2">
+                        {{ app.candidate.username }} 
+                        <span class="font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md border bg-white shadow-sm
+                        {% if app.match_category == 'Strong Match' %}border-green-200 text-green-700
+                        {% elif app.match_category == 'Skill Gap' %}border-yellow-200 text-yellow-700
+                        {% else %}border-red-200 text-red-700{% endif %}">
+                            {{ app.match_category }} ({{ app.match_rating }}%)
+                        </span>
+                        {% if app.resume %}
+                        <a href="{{ app.resume.url }}" target="_blank" class="text-[10px] bg-slate-100 border border-slate-200 text-slate-700 px-2 py-0.5 rounded shadow-sm hover:bg-white transition flex items-center gap-1">📄 Resume</a>
+                        {% endif %}
+                    </h3>
+                    {% if app.hr_remark %}
+                    <p class="text-xs text-gray-600 font-medium italic mt-2.5 bg-white p-2 rounded border border-gray-100 inline-block shadow-sm">"{{ app.hr_remark }}"</p>
+                    {% endif %}
+                </div>
+                <span class="text-[11px] self-start sm:self-center uppercase tracking-wider font-bold px-4 py-1.5 rounded-full shadow-sm border {% if app.status == 'Accepted' %}bg-green-100 border-green-200 text-green-800{% else %}bg-red-100 text-red-800 border-red-200{% endif %}">{{ app.status }}</span>
+            </li>
+            {% empty %}
+            <li class="px-6 py-10 text-center text-sm text-gray-400 font-medium">No candidate decisions have been logged yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

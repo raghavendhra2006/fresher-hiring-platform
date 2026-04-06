@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HireAssist Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+    <nav class="bg-white border-b shadow-sm sticky top-0 z-10 w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">HireAssist</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'home' %}" class="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition">Home</a>
+                    <a href="{% url 'leaderboard' %}" class="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition">Trending Skills</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'profile' %}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition">My Profile</a>
+                        <span class="text-sm text-gray-500 hidden sm:inline-block border text-center px-3 py-1 rounded-full shadow-sm">{{ user.username }} ({{ user.is_hr|yesno:"HR,Candidate" }})</span>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="text-sm font-medium text-gray-700 hover:text-blue-600 transition">Logout</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition">Log in</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    <main class="container mx-auto px-4 py-8 min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="bg-white text-center py-6 border-t mt-auto w-full">
+        <p class="text-xs text-gray-400">&copy; 2026 HireAssist. Accelerated Hiring via Skill Assessment.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="lg:col-span-8 space-y-12">
+        <section>
+            <h1 class="text-2xl font-bold border-b border-gray-200 pb-3 text-gray-900 mb-6 flex justify-between items-end">
+                <span>Available Jobs Directory</span>
+                <span class="text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">{{ jobs.count }} Total</span>
+            </h1>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {% for job in jobs %}
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-indigo-200 hover:shadow-md transition duration-300 flex flex-col h-full relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-indigo-600"></div>
+                    <div class="flex-grow">
+                        <h2 class="text-lg font-bold text-gray-900 mb-2">{{ job.title }}</h2>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">{{ job.description }}</p>
+                        <div class="flex flex-wrap gap-1.5 mb-2">
+                            {% for skill in job.skills.all %}
+                            <span class="bg-slate-100 border border-slate-200 text-slate-700 px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wide">{{ skill.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-gray-50">
+                        <a href="{% url 'job_apply' job.id %}" class="block w-full text-center bg-gray-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded-xl shadow-sm transition active:scale-[0.98] text-sm tracking-wide">Process Job Application</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="bg-white p-12 rounded-2xl border border-dashed border-gray-300 text-center col-span-full">
+                    <p class="text-gray-500 font-medium text-lg">No active jobs explicitly found on the platform.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+    
+    <div class="lg:col-span-4 space-y-8">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24">
+            <h2 class="text-lg font-bold mb-5 text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                Skill Guide Chatbot System
+            </h2>
+            
+            {% if bot_reply %}
+            <div class="bg-green-50 text-green-800 p-4 rounded-xl mb-5 text-sm font-medium border border-green-200 shadow-sm flex items-start">
+                <svg class="w-5 h-5 mr-2 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>{{ bot_reply }}</span>
+            </div>
+            {% endif %}
+            
+            <form method="post" action="{% url 'home' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="chatbot" value="1">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Execute Text Query</label>
+                    <input type="text" name="query" class="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-xl text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition shadow-sm" placeholder="e.g. 'I know Python!'" required>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-bold hover:bg-indigo-700 transition active:scale-[0.98] shadow-sm">
+                    Assess Trajectory
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
