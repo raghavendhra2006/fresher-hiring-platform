@@ -4,6 +4,9 @@ from django.db.models import Max
 from .models import JobPost, ScreeningQuestion, JobApplication
 from skill.models import Skill, UnmatchedSearch
 import string
+import json
+from django.http import JsonResponse
+import os
 
 def home_view(request):
     bot_reply = None
@@ -89,6 +92,29 @@ def profile_view(request):
         })
 
 @login_required
+def edit_profile(request):
+    if getattr(request.user, 'is_hr', False):
+        return redirect('profile')
+        
+    if request.method == 'POST':
+        experience = request.POST.get('experience_summary', '').strip()
+        custom_skills_str = request.POST.get('custom_skills', '')
+        
+        request.user.experience_summary = experience
+        request.user.save()
+        
+        if custom_skills_str:
+            custom_list = [s.strip() for s in custom_skills_str.split(',') if s.strip()]
+            for s_name in custom_list:
+                normalized_name = s_name.title()
+                skill_obj, created = Skill.objects.get_or_create(name__iexact=normalized_name, defaults={'name': normalized_name})
+                request.user.known_skills.add(skill_obj)
+                
+        return redirect('profile')
+        
+    return render(request, 'jobs/edit_profile.html')
+
+@login_required
 def hr_post_job(request):
     if not getattr(request.user, 'is_hr', False):
         return redirect('home')
@@ -97,17 +123,30 @@ def hr_post_job(request):
     
     if request.method == 'POST':
         title = request.POST.get('title')
+        company_name = request.POST.get('company_name', 'Not Specified')
         description = request.POST.get('description')
         selected_skills = request.POST.getlist('skills')
+        custom_skills_str = request.POST.get('custom_skills', '')
         
         job = JobPost.objects.create(
             hr_author=request.user,
+            company_name=company_name,
             title=title,
             description=description,
             is_active=True
         )
-        if selected_skills:
-            job.skills.set(selected_skills)
+        
+        skill_objs = list(Skill.objects.filter(id__in=selected_skills))
+        
+        if custom_skills_str:
+            custom_list = [s.strip() for s in custom_skills_str.split(',') if s.strip()]
+            for s_name in custom_list:
+                normalized_name = s_name.title()
+                skill_obj, created = Skill.objects.get_or_create(name__iexact=normalized_name, defaults={'name': normalized_name})
+                skill_objs.append(skill_obj)
+                
+        if skill_objs:
+            job.skills.set(skill_objs)
             
         return redirect('hr_add_questions', job_id=job.id)
         
@@ -121,11 +160,11 @@ def hr_add_questions(request, job_id):
     job = get_object_or_404(JobPost, id=job_id, hr_author=request.user)
     
     if request.method == 'POST':
-        for i in range(1, 4):
+        for i in range(1, 6):
             q_text = request.POST.get(f'q{i}_text', '').strip()
             if q_text:
                 q_req = request.POST.get(f'q{i}_yesno') == 'yes'
-                ScreeningQuestion.objects.create(job=job, text=q_text, requires_yes=q_req)
+                ScreeningQuestion.objects.create(job=job, question_text=q_text, requires_yes=q_req)
         return redirect('profile')
         
     return render(request, 'jobs/post_job_questions.html', {'job': job})
@@ -147,7 +186,7 @@ def hr_job_detail(request, job_id):
             if q_text:
                 ScreeningQuestion.objects.create(
                     job=job,
-                    text=q_text,
+                    question_text=q_text,
                     requires_yes=req_yes
                 )
             return redirect('hr_job_detail', job_id=job.id)
@@ -194,6 +233,7 @@ def leaderboard_view(request):
             'name': skill.name,
             'demand_score': skill.demand_score,
             'percent': percent,
+            'style_str': f'style="width: {percent}%;"'
         })
     return render(request, 'jobs/leaderboard.html', {'leaderboard': leaderboard})
 
@@ -241,3 +281,49 @@ def reapply_job(request, app_id):
         app.hr_remark = ''
         app.save()
     return redirect('profile')
+
+def api_chat(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            query = data.get('query', '').strip()
+            
+            if not query:
+                return JsonResponse({"reply": "Please send a valid message."})
+                
+            # Log the skill matching internally
+            clean_query = query.lower()
+            match_found = False
+            for skill in Skill.objects.all():
+                if skill.name.lower() in clean_query:
+                    skill.demand_score += 1
+                    skill.save()
+                    match_found = True
+                    break
+            
+            if not match_found and clean_query:
+                unmatched, created = UnmatchedSearch.objects.get_or_create(term=query.strip())
+                if not created:
+                    unmatched.query_count += 1
+                    unmatched.save()
+            
+            try:
+                import google.generativeai as genai
+                from django.conf import settings
+                
+                api_token = getattr(settings, 'GEMINI_API_KEY', None)
+                if not api_token:
+                    return JsonResponse({"reply": "AI backend not initialized: No API Key found in settings.py"})
+                
+                genai.configure(api_key=api_token)
+                model = genai.GenerativeModel('gemini-2.5-flash')
+                prompt = "You are a helpful, brief career assistant for a fresher hiring platform. Reply in 1 or 2 short sentences.\nUser: " + query
+                response = model.generate_content(prompt)
+                return JsonResponse({"reply": response.text})
+            except Exception as e:
+                return JsonResponse({"reply": f"AI Component Error: {str(e)}"})
+                
+        except Exception as e:
+            return JsonResponse({"reply": "I'm having trouble connecting to the network right now. Try again later!"})
+            
+    return JsonResponse({"reply": "Method not allowed"}, status=405)

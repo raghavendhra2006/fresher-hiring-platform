@@ -4,6 +4,7 @@ from skill.models import Skill
 
 class JobPost(models.Model):
     hr_author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    company_name = models.CharField(max_length=150, default='Not Specified')
     title = models.CharField(max_length=255)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

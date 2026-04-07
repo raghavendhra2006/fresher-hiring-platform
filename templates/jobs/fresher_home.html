@@ -7,21 +7,22 @@
                 <span>Available Jobs Directory</span>
                 <span class="text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">{{ jobs.count }} Total</span>
             </h1>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
                 {% for job in jobs %}
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-indigo-200 hover:shadow-md transition duration-300 flex flex-col h-full relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-indigo-600"></div>
-                    <div class="flex-grow">
-                        <h2 class="text-lg font-bold text-gray-900 mb-2">{{ job.title }}</h2>
-                        <p class="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">{{ job.description }}</p>
-                        <div class="flex flex-wrap gap-1.5 mb-2">
+                <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col h-full overflow-hidden border border-gray-100 group">
+                    <div class="p-6 flex-grow flex flex-col">
+                        <p class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">{{ job.company_name }}</p>
+                        <h2 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-indigo-700 transition-colors">{{ job.title }}</h2>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-5 line-clamp-3">{{ job.description }}</p>
+                        
+                        <div class="flex flex-wrap gap-2 mt-auto">
                             {% for skill in job.skills.all %}
-                            <span class="bg-slate-100 border border-slate-200 text-slate-700 px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wide">{{ skill.name }}</span>
+                            <span class="bg-indigo-100 text-indigo-800 border border-indigo-200 px-3 py-1 rounded-full text-xs font-bold tracking-wide">{{ skill.name }}</span>
                             {% endfor %}
                         </div>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-gray-50">
-                        <a href="{% url 'job_apply' job.id %}" class="block w-full text-center bg-gray-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded-xl shadow-sm transition active:scale-[0.98] text-sm tracking-wide">Process Job Application</a>
+                    <div class="p-4 border-t border-gray-50 bg-gray-50/50 mt-auto">
+                        <a href="{% url 'job_apply' job.id %}" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg shadow-sm transition-all duration-200 active:scale-[0.98] text-sm tracking-wide">Apply</a>
                     </div>
                 </div>
                 {% empty %}
@@ -40,25 +41,109 @@
                 Skill Guide Chatbot System
             </h2>
             
-            {% if bot_reply %}
-            <div class="bg-green-50 text-green-800 p-4 rounded-xl mb-5 text-sm font-medium border border-green-200 shadow-sm flex items-start">
-                <svg class="w-5 h-5 mr-2 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <span>{{ bot_reply }}</span>
+            <div id="chat-messages" class="space-y-3 mb-5 max-h-64 overflow-y-auto pr-2">
+                {% if bot_reply %}
+                <div class="bg-indigo-50 text-indigo-800 p-4 rounded-xl text-sm font-medium border border-indigo-200 shadow-sm flex items-start">
+                    <svg class="w-5 h-5 mr-2 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>{{ bot_reply }}</span>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
             
-            <form method="post" action="{% url 'home' %}" class="space-y-4">
+            <form id="chatbot-form" method="post" action="{% url 'home' %}" class="space-y-4 pt-2 border-t border-gray-100">
                 {% csrf_token %}
                 <input type="hidden" name="chatbot" value="1">
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Execute Text Query</label>
-                    <input type="text" name="query" class="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-xl text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition shadow-sm" placeholder="e.g. 'I know Python!'" required>
+                    <input type="text" id="chat-input" name="query" class="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-xl text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition shadow-sm" placeholder="e.g. 'I know Python!'" required autocomplete="off">
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-bold hover:bg-indigo-700 transition active:scale-[0.98] shadow-sm">
-                    Assess Trajectory
+                <button type="submit" id="chat-submit" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-bold hover:bg-indigo-700 transition active:scale-[0.98] shadow-sm flex justify-center items-center">
+                    <span>Assess Trajectory</span>
                 </button>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const chatForm = document.getElementById('chatbot-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatSubmit = document.getElementById('chat-submit');
+        const chatMessages = document.getElementById('chat-messages');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const queryText = chatInput.value.trim();
+            if(!queryText) return;
+
+            // 1. Append User Bubble
+            const userHTML = `
+            <div class="bg-gray-100 text-gray-800 p-3 rounded-xl rounded-tr-none text-sm font-medium ml-8 shadow-sm flex items-start justify-end text-right">
+                <span>${queryText}</span>
+            </div>`;
+            chatMessages.insertAdjacentHTML('beforeend', userHTML);
+            chatInput.value = '';
+            
+            // 2. Loading State
+            chatInput.disabled = true;
+            chatSubmit.disabled = true;
+            chatSubmit.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...`;
+                
+            const loadingId = 'loading-' + Date.now();
+            const loadingHTML = `
+            <div id="${loadingId}" class="bg-indigo-50 text-indigo-800 p-3 rounded-xl rounded-tl-none text-sm font-medium mr-8 border border-indigo-100 shadow-sm flex items-center">
+                <span class="flex space-x-1">
+                    <span class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span>
+                    <span class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></span>
+                    <span class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
+                </span>
+            </div>`;
+            chatMessages.insertAdjacentHTML('beforeend', loadingHTML);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // 3. Fetch API Call
+            fetch("{% url 'api_chat' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ query: queryText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById(loadingId).remove();
+                
+                const botHTML = `
+                <div class="bg-indigo-50 text-indigo-800 p-4 rounded-xl rounded-tl-none text-sm font-medium mr-8 border border-indigo-200 shadow-sm flex items-start">
+                    <svg class="w-5 h-5 mr-2 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>${data.reply}</span>
+                </div>`;
+                chatMessages.insertAdjacentHTML('beforeend', botHTML);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            })
+            .catch(error => {
+                document.getElementById(loadingId).remove();
+                const errorHTML = `
+                <div class="bg-red-50 text-red-800 p-3 rounded-xl rounded-tl-none text-sm font-medium mr-8 border border-red-200 shadow-sm">
+                    ⚠️ Connection error. Please try again.
+                </div>`;
+                chatMessages.insertAdjacentHTML('beforeend', errorHTML);
+            })
+            .finally(() => {
+                chatInput.disabled = false;
+                chatSubmit.disabled = false;
+                chatSubmit.innerHTML = `<span>Assess Trajectory</span>`;
+                chatInput.focus();
+            });
+        });
+    });
+</script>
 {% endblock %}

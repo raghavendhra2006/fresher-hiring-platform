@@ -134,3 +134,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = '/login/'
+
+GEMINI_API_KEY = "[ENCRYPTION_KEY]"
+
+

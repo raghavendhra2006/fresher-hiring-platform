@@ -28,7 +28,7 @@
                         <div class="flex items-center">
                             <span class="text-sm font-bold text-gray-900 mr-4 w-10">{{ skill.percent }}%</span>
                             <div class="w-full bg-gray-200 rounded-full h-3 max-w-[150px]">
-                                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full" style="width: {{ skill.percent }}%"></div>
+                                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full" {{ skill.style_str|safe }}></div>
                             </div>
                         </div>
                     </td>

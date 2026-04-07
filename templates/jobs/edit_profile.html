@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile | HireAssist{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+        <div>
+            <h2 class="text-center text-3xl font-extrabold text-gray-900">
+                Update Your Profile
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Refine your background logic to match with top trending jobs.
+            </p>
+        </div>
+        
+        <form class="mt-8 space-y-6" method="POST">
+            {% csrf_token %}
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Experience Summary</label>
+                    <input type="text" name="experience_summary" value="{{ user.experience_summary }}" required class="appearance-none relative block w-full px-4 py-3 border border-gray-300 rounded-xl placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition-all" placeholder="e.g., Junior SWE with 2 years of experience">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Add New Skills (comma-separated)</label>
+                    <input type="text" name="custom_skills" class="appearance-none relative block w-full px-4 py-3 border border-gray-300 rounded-xl placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition-all" placeholder="e.g., Python, Django, React">
+                    <p class="text-xs text-gray-500 mt-2">Append any missing tech stacks not currently tracked on your profile.</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col space-y-3">
+                <button type="submit" class="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-md">
+                    Apply Profile Updates
+                </button>
+                <a href="{% url 'profile' %}" class="w-full text-center text-sm font-medium text-gray-600 hover:text-gray-900 mt-2">
+                    Cancel & Return
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

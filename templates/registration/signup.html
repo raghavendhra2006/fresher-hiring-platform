@@ -1,53 +1,93 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="flex items-center justify-center min-h-[calc(100vh-140px)] bg-gray-50 py-10">
-  <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 max-w-md w-full mx-4">
-    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6 font-display">Create an Account</h2>
-    <form method="post" class="space-y-4">
-      {% csrf_token %}
-      {% if form.errors %}
-        <p class="text-sm text-red-600 bg-red-50 p-3 rounded-md font-medium">Please correct the errors below.</p>
-        <ul class="text-xs text-red-500 mb-4 list-disc list-inside">
-          {% for field, errors in form.errors.items %}
-            {% for error in errors %}
-              <li>{{ field|title }}: {{ error }}</li>
-            {% endfor %}
-          {% endfor %}
-        </ul>
-      {% endif %}
-      
-      {% for field in form %}
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {% if field.help_text %}
-        <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
-        {% endif %}
-      </div>
-      {% endfor %}
-      
-      <button type="submit" class="w-full mt-6 bg-slate-800 text-white font-semibold py-2.5 rounded-lg shadow-sm hover:bg-slate-900 active:scale-[0.98] transition-all">Sign Up</button>
-      
-      <div class="text-center mt-6">
-        <p class="text-sm text-gray-600">Already a member? <a href="{% url 'login' %}" class="text-blue-600 font-medium hover:underline">Log in securely.</a></p>
-      </div>
-    </form>
-  </div>
-</div>
-<style>
-    input[type="text"], input[type="password"], input[type="email"], select {
-        width: 100%;
-        padding: 0.625rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.5rem;
-        outline: none;
-        transition: border-color 0.15s ease-in-out;
-        background-color: #f9fafb;
-    }
-    input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus {
-        border-color: #2563eb;
-        box-shadow: 0 0 0 1px #2563eb;
-        background-color: #ffffff;
-    }
-</style>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - HireAssist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen flex text-gray-900 bg-white">
+    <div class="grid lg:grid-cols-2 w-full min-h-screen">
+        
+        <!-- Left Side: Branding Gradient -->
+        <div class="hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-500 p-12 text-center text-white relative overflow-hidden">
+            <div class="absolute inset-0 bg-black/10 backdrop-blur-sm z-0"></div>
+            <div class="z-10 max-w-lg">
+                <h1 class="text-5xl font-extrabold tracking-tight mb-6">Launch Your Career Today.</h1>
+                <p class="text-lg text-indigo-100 font-medium">Connect with top companies, bypass the resume pile, and get matched to jobs based on your actual skills.</p>
+            </div>
+            <div class="absolute bottom-10 left-10 text-white/50 text-sm font-bold tracking-widest uppercase">HireAssist Platform</div>
+        </div>
+
+        <!-- Right Side: Form -->
+        <div class="flex items-center justify-center p-8 bg-white h-full relative overflow-y-auto">
+            <a href="{% url 'home' %}" class="absolute top-8 right-8 text-sm font-bold text-gray-400 hover:text-indigo-600 transition">&larr; Back to Home</a>
+            
+            <div class="w-full max-w-md space-y-8 my-auto py-12">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Create an Account</h2>
+                    <p class="text-gray-500 font-medium text-sm">Join the platform to discover opportunities that match your skills.</p>
+                </div>
+                
+                <form method="post" class="space-y-5">
+                    {% csrf_token %}
+                    {% if form.errors %}
+                      <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm font-medium">
+                          <p class="mb-2 font-bold">Please correct the errors below:</p>
+                          <ul class="text-xs list-disc list-inside space-y-1">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                <li>{{ field|title }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                          </ul>
+                      </div>
+                    {% endif %}
+                    
+                    {% for field in form %}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <p class="text-[10px] text-gray-400 mt-1.5">{{ field.help_text }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold tracking-wide py-3.5 rounded-xl shadow-[0_4px_14px_0_rgb(79,70,229,0.39)] hover:bg-indigo-700 hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] transition duration-200 active:scale-[0.98]">
+                        Sign Up
+                    </button>
+                    
+                    <div class="text-center mt-6 pt-6 border-t border-gray-100">
+                        <p class="text-sm font-medium text-gray-600">Already a member? <a href="{% url 'login' %}" class="text-indigo-600 font-bold hover:underline">Log in securely.</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Injecting precise Tailwind styles to the nested Django fields natively -->
+    <style>
+        input[type="text"], input[type="password"], input[type="email"], select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.75rem;
+            outline: none;
+            transition: all 0.2s ease-in-out;
+            background-color: #f9fafb;
+            color: #111827;
+            font-size: 0.875rem;
+        }
+        input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            background-color: #ffffff;
+        }
+    </style>
+</body>
+</html>

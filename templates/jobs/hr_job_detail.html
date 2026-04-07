@@ -54,9 +54,13 @@
                 <tr class="hover:bg-yellow-50/20 transition group">
                     <td class="px-6 py-6 whitespace-nowrap text-sm font-bold text-gray-900 flex flex-col">
                         <span>{{ app.candidate.username }}</span>
+                        {% if app.candidate.experience_summary %}
+                        <span class="text-xs text-indigo-600 font-semibold mb-1 whitespace-normal">{{ app.candidate.experience_summary }}</span>
+                        {% endif %}
                         {% if app.resume %}
-                        <a href="{{ app.resume.url }}" target="_blank" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold mt-1 inline-flex items-center">
-                            <span class="bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded shadow-sm">📄 Download Logged Resume Context</span>
+                        <a href="{{ app.resume.url }}" download class="mt-2 inline-flex items-center px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-md text-[10px] font-bold text-indigo-700 shadow-sm hover:bg-indigo-100 hover:text-indigo-800 transition">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            View/Download Resume
                         </a>
                         {% endif %}
                     </td>
@@ -101,9 +105,15 @@
                             {{ app.match_category }} ({{ app.match_rating }}%)
                         </span>
                         {% if app.resume %}
-                        <a href="{{ app.resume.url }}" target="_blank" class="text-[10px] bg-slate-100 border border-slate-200 text-slate-700 px-2 py-0.5 rounded shadow-sm hover:bg-white transition flex items-center gap-1">📄 Resume</a>
+                        <a href="{{ app.resume.url }}" download class="inline-flex items-center text-[10px] bg-slate-100 border border-slate-200 text-slate-700 px-2 py-1 rounded shadow-sm hover:bg-white transition ml-1">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            View/Download Resume
+                        </a>
                         {% endif %}
                     </h3>
+                    {% if app.candidate.experience_summary %}
+                    <p class="text-xs text-indigo-700 font-semibold mt-1">{{ app.candidate.experience_summary }}</p>
+                    {% endif %}
                     {% if app.hr_remark %}
                     <p class="text-xs text-gray-600 font-medium italic mt-2.5 bg-white p-2 rounded border border-gray-100 inline-block shadow-sm">"{{ app.hr_remark }}"</p>
                     {% endif %}
